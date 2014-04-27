@@ -1,13 +1,13 @@
-{- LANGUAGE ImplicitParameters -}
+{-#LANGUAGE ImplicitParams#-}
 module WWRRD where
 
 import Data.List
 import NLP.WordNet
-
+import Track
 
 wnEnv :: IO WordNetEnv
 wnEnv = initializeWordNetWithOptions (Just dictPath) (return warn)
-        where dictPath = "/Users/kieran/dev/haskell/wwrrd/dict/"
+        where dictPath = "dict/"
               warn s e = return () :: IO ()
 
 similar :: (?wne :: WordNetEnv) => Word -> POS -> [SearchResult]
