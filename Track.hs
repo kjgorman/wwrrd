@@ -1,14 +1,15 @@
 {-#LANGUAGE OverloadedStrings #-}
 module Track (
     Track
-  , parseFile
-  , lyricLength
+  , parseDirectory
   ) where
 
-import           Control.Applicative
-import           Control.Monad
+import           Control.Applicative ((<*>), (<$>))
+import           Control.Monad (liftM, mzero)
 import           Data.Aeson
 import qualified Data.ByteString.Lazy as B
+import           Data.Maybe
+import           System.Directory
 
 data Track = Track { media :: Maybe String, lyrics :: [String] }
              deriving (Show)
@@ -22,7 +23,8 @@ instance FromJSON Track where
 parseFile :: FilePath -> IO (Maybe Track)
 parseFile f = liftM decode $ B.readFile f
 
-lyricLength :: Maybe Track -> Maybe Int
-lyricLength m = do
-  t <- m
-  return . length $ lyrics t
+parseDirectory :: FilePath -> IO [Track]
+parseDirectory dir = do
+  f <- getDirectoryContents dir
+  files <- mapM (\f -> parseFile $ dir ++ "/" ++ f) (drop 2 f)
+  return $ map fromJust $ filter isJust files
