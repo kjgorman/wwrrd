@@ -1,6 +1,7 @@
 {-#LANGUAGE OverloadedStrings #-}
 module Track (
     Track
+  , lyrics
   , parseDirectory
   ) where
 
