@@ -53,5 +53,5 @@ loadPhraseSets = do
   return (phrases, env)
 
 collectRelations :: WordNetEnv -> String -> [[PhraseSet]] -> [[PhraseSet]]
-collectRelations env text phrases = collectIntersecting related phrases
+collectRelations env text = collectIntersecting related
   where related = S.fromList $ words text ++ runs env collectSimilar text
