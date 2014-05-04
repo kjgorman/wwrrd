@@ -8,9 +8,14 @@ import           Snap.Core
 import           Snap.Util.FileServe
 import           Snap.Http.Server
 import           WWRRD
+import           RedisClient (writePhrasesToStore, readPhrasesFromStore)
 
 main :: IO ()
-main = quickHttpServe site
+main = do
+  (phrases, env) <- loadPhraseSets
+  writePhrasesToStore phrases
+  closeEnv env
+  quickHttpServe site
 
 site :: Snap ()
 site =
@@ -25,9 +30,11 @@ lookupHandler = do
     (Just text) -> findRelatedPhrases text
   where
     findRelatedPhrases text = do
-      logError "opening phrase dictionary"
-      (phrases, env) <- liftIO loadPhraseSets
-      logError "collecting relations"
+      env <- liftIO wnEnv
+      phrases <- liftIO getPhrases
       let related = collectRelations env (B.unpack text) phrases
-      writeBS $ pack $ related >>= (>>= line)
       liftIO $ closeEnv env
+      writeBS "foo"
+
+getPhrases :: IO [[PhraseSet]]
+getPhrases = undefined

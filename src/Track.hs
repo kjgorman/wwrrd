@@ -1,6 +1,7 @@
 {-#LANGUAGE OverloadedStrings #-}
 module Track (
     Track
+  , title
   , media
   , lyrics
   , parseDirectory
@@ -14,14 +15,20 @@ import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe
 import           System.Directory
 
-data Track = Track { media :: Maybe String, lyrics :: [String] }
+data Track = Track { title :: String
+                   , media :: Maybe String
+                   , lyrics :: [String] }
              deriving (Show)
 
 instance FromJSON Track where
   parseJSON (Object v) = Track <$>
+                         v .: "title" <*>
                          v .:? "media" <*>
                          v .: "lyrics"
   parseJSON _ = mzero
+
+instance ToJSON Track where
+  toJSON track = object ["media" .= (media track), "lyrics" .= (lyrics track)]
 
 parseFile :: FilePath -> IO (Maybe Track)
 parseFile f = liftM (decode . BL.fromStrict) $ B.readFile f
