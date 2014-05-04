@@ -1,6 +1,9 @@
 {-#LANGUAGE ImplicitParams#-}
 module WWRRD where
 
+import           Control.Applicative ((<$>))
+import           Control.Parallel.Strategies
+import           Data.Char (toLower)
 import           Data.Function
 import           Data.List (intercalate, sortBy)
 import           Data.Ord
@@ -14,25 +17,43 @@ wnEnv = initializeWordNetWithOptions (Just dictPath) (return warn)
               warn s e = return () :: IO ()
 
 similar :: WN (Word -> POS -> [SearchResult])
-similar term pos = (search term pos AllSenses) >>= relatedBy Similar
+similar term pos = search (map toLower term) pos AllSenses >>= relatedBy Similar
 
 collectSimilar :: WN (String -> [Word])
 collectSimilar str = forPos >>= similarWords
     where
-      tkns = words str
-      forPos = [(w, p) | p <- [Adj, Noun, Verb, Adv], w <- tkns]
-      similarWords s = similar (fst s) (snd s) >>= (flip srWords $ AllSenses)
+      forPos = [(w, p) | p <- [Adj, Noun, Verb, Adv], w <- words str]
+      similarWords s = uncurry similar s >>= (`srWords` AllSenses)
 
-pairLyrics :: WN (Track -> [(String, S.Set Word)])
+type PhraseSet = (String, S.Set Word)
+
+pairLyrics :: WN (Track -> [PhraseSet])
 pairLyrics = map (\x -> (x, S.fromList $ collectSimilar x)) . lyrics
+
+collectPhrases :: WN ([Track] -> [[PhraseSet]])
+collectPhrases trax = pairLyrics <$> trax `using` parList rseq
+
+intersectingPhrases :: S.Set Word -> [PhraseSet] -> [PhraseSet]
+intersectingPhrases rel = filter (not . S.null . S.intersection rel . snd)
+
+collectIntersecting :: S.Set Word -> [[PhraseSet]] -> [[PhraseSet]]
+collectIntersecting rel p = intersectingPhrases rel <$> p `using` rseq
 
 main :: IO ()
 main = do
   env <- wnEnv
   trax <- parseDirectory "ross"
-  phrase <- readLn
-  let related = S.fromList $ words phrase ++ (runs env $ collectSimilar phrase)
-      test = runs env $ pairLyrics $ head trax
-      inter = filter (not . S.null . (S.intersection related) . snd) test
-      ordering = sortBy (compare `on` (S.size . snd))
-  putStrLn . show . fst . head . ordering $ inter
+  let phrases = runs env $ collectPhrases trax
+  loop phrases env
+  closeWordNet env
+  where
+    loop phrases env = do
+      phrase <- readLn
+      case phrase of
+        "" -> return ()
+        text -> getIntersection phrases env text
+    getIntersection phrases env text = do
+      let related = S.fromList $ words text ++ runs env collectSimilar text
+          inter   = collectIntersecting related phrases
+      print $ map fst <$> inter
+      loop phrases env

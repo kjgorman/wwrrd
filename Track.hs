@@ -8,7 +8,8 @@ module Track (
 import           Control.Applicative ((<*>), (<$>))
 import           Control.Monad (liftM, mzero)
 import           Data.Aeson
-import qualified Data.ByteString.Lazy as B
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import           Data.Maybe
 import           System.Directory
 
@@ -22,7 +23,7 @@ instance FromJSON Track where
   parseJSON _ = mzero
 
 parseFile :: FilePath -> IO (Maybe Track)
-parseFile f = liftM decode $ B.readFile f
+parseFile f = liftM (decode . BL.fromStrict) $ B.readFile f
 
 parseDirectory :: FilePath -> IO [Track]
 parseDirectory dir = do
