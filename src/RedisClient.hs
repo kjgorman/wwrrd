@@ -10,7 +10,7 @@ import           Control.Monad.IO.Class
 import           Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
-import           Data.Either (rights)
+import           Data.Either (either, rights)
 import           Data.Maybe (maybeToList)
 import qualified Data.Set as S
 import           Database.Redis
@@ -52,9 +52,7 @@ valuesAsPhrases :: [B.ByteString] -> [PhraseSet]
 valuesAsPhrases vals = vals >>= maybeToList . Data.Aeson.decode . BL.fromStrict
 
 getKeys :: Either String [B.ByteString] -> [B.ByteString]
-getKeys x = case x of
-  Left err -> []
-  Right keys -> keys
+getKeys = either (const []) id
 
 errorsToString arg = case arg of
   Left err -> Left $ show err
