@@ -31,6 +31,7 @@ collectSimilar str = forPos >>= similarWords
 data PhraseSet = PhraseSet { track :: Track
                            , line :: Word
                            , phrases :: S.Set Word }
+                 deriving (Show)
 
 pairLyrics :: WN (Track -> [PhraseSet])
 pairLyrics t = map buildPhraseSet $ lyrics t
