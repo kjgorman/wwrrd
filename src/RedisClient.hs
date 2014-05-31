@@ -30,10 +30,10 @@ instance ToJSON PhraseSet where
                          , "line"    .= line phrase
                          , "phrases" .= phrases phrase]
 
-writePhrasesToStore :: [[PhraseSet]] -> IO [Either Reply Status]
+writePhrasesToStore :: [PhraseSet] -> IO [Either Reply Status]
 writePhrasesToStore phrases = do
   conn <- connect defaultConnectInfo
-  runRedis conn $ mapM writePhrase $ concat phrases
+  runRedis conn $ mapM writePhrase phrases
     where
       writePhrase p = set (B.pack . title $ track p) $ BL.toStrict $ encode p
 

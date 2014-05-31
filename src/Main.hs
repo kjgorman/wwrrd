@@ -44,5 +44,5 @@ lookupHandler = do
       liftIO $ closeEnv env
       writeBS . B.pack $ show related
 
-getPhrases :: IO [[PhraseSet]]
-getPhrases = liftM (either (const []) (:[])) readPhrasesFromStore
+getPhrases :: IO [PhraseSet]
+getPhrases = liftM (either (const []) id) readPhrasesFromStore
