@@ -1,5 +1,14 @@
 {-#LANGUAGE ImplicitParams#-}
-module WWRRD where
+module WWRRD (
+       -- * The phrase set type
+         PhraseSet (..)
+       -- * functions for interacting with phrase sets
+       , loadPhraseSets
+       , collectRelations
+       -- * functions for interacting with a WordNet environment
+       , closeEnv
+       , wnEnv
+       ) where
 
 import           Control.Applicative ((<$>))
 import           Control.Parallel.Strategies

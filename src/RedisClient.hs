@@ -2,6 +2,7 @@
 module RedisClient (
     writePhrasesToStore
   , readPhrasesFromStore
+  , haveCached
   ) where
 
 import           Control.Applicative
@@ -25,15 +26,14 @@ instance FromJSON PhraseSet where
   parseJSON _ = mzero
 
 instance ToJSON PhraseSet where
-  toJSON phrase = object [ "track"   .= (toJSON $ track phrase)
+  toJSON phrase = object [ "track"   .= toJSON (track phrase)
                          , "line"    .= line phrase
                          , "phrases" .= phrases phrase]
 
 writePhrasesToStore :: [[PhraseSet]] -> IO [Either Reply Status]
 writePhrasesToStore phrases = do
   conn <- connect defaultConnectInfo
-  runRedis conn $ do
-    sequence $ map writePhrase $ concat phrases
+  runRedis conn $ mapM writePhrase $ concat phrases
     where
       writePhrase p = set (B.pack . title $ track p) $ BL.toStrict $ encode p
 
@@ -54,14 +54,22 @@ valuesAsPhrases vals = vals >>= maybeToList . Data.Aeson.decode . BL.fromStrict
 getKeys :: Either String [B.ByteString] -> [B.ByteString]
 getKeys = either (const []) id
 
+errorsToString :: Either Reply [B.ByteString] -> Either String [B.ByteString]
 errorsToString arg = case arg of
   Left err -> Left $ show err
-  Right ks -> Right $ ks
+  Right ks -> Right ks
 
 valuesForKeys :: [B.ByteString] -> Redis [B.ByteString]
 valuesForKeys keys = do
-  perhapsVals <- sequence $ map gets keys
+  perhapsVals <- mapM gets keys
   return $ rights perhapsVals >>= maybeToList
 
 gets :: B.ByteString -> Redis (Either Reply (Maybe B.ByteString))
 gets = get
+
+haveCached :: IO Bool
+haveCached = do
+  conn <- connect defaultConnectInfo
+  runRedis conn $ do
+    allKeys <- keys "*"
+    return $ length (getKeys . errorsToString $ allKeys) > 0
