@@ -1,5 +1,0 @@
-127.0.0.1 - - [04/May/2014:16:25:33 +1200] "GET / HTTP/1.1" 200 - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
-127.0.0.1 - - [04/May/2014:16:25:33 +1200] "GET /favicon.ico HTTP/1.1" 404 - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
-127.0.0.1 - - [04/May/2014:17:00:08 +1200] "GET / HTTP/1.1" 404 - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
-127.0.0.1 - - [04/May/2014:17:00:27 +1200] "GET /query/real%20talk HTTP/1.1" 500 118 - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
-127.0.0.1 - - [04/May/2014:17:08:48 +1200] "GET /query/real%20talk HTTP/1.1" 200 - - "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36"
