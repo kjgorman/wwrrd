@@ -19,11 +19,13 @@ main = do
                    else loadAndServe
 
 loadAndServe = do
+  print "loading relations to redis"
   (phrases, env) <- loadPhraseSets
   writePhrasesToStore phrases
   print "written to redis"
   closeEnv env
   print "up on 8080"
+  quickHttpServe site
 
 site :: Snap ()
 site =

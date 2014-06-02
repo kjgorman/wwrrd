@@ -19,6 +19,7 @@ import           Data.List (intercalate, sortBy)
 import           Data.Ord
 import qualified Data.Set as S
 import           NLP.WordNet
+import           PhraseSet
 import           Track
 
 wnEnv :: IO WordNetEnv
@@ -38,20 +39,16 @@ collectSimilar str = forPos >>= similarWords
       forPos = [(w, p) | p <- [Adj, Noun, Verb, Adv], w <- words str]
       similarWords s = uncurry similar s >>= (`srWords` AllSenses)
 
-data PhraseSet = PhraseSet { track :: Track
-                           , line :: Word
-                           , phrases :: S.Set Word }
-                 deriving (Show)
-
-pairLyrics :: WN (Track -> [PhraseSet])
-pairLyrics t = map buildPhraseSet $ lyrics t
-    where buildPhraseSet x = PhraseSet t x (S.fromList $ collectSimilar x)
+pairLyrics :: WN (Track -> PhraseSet)
+pairLyrics t = PhraseSet t $ map buildPhraseSet $ lyrics t
+    where buildPhraseSet x = PhraseLine x (S.fromList $ collectSimilar x)
 
 collectPhrases :: WN ([Track] -> [PhraseSet])
-collectPhrases trax = join (pairLyrics <$> trax `using` parList rseq)
+collectPhrases trax = pairLyrics <$> trax `using` parList rseq
 
 intersectingPhrases :: S.Set Word -> PhraseSet -> PhraseSet
-intersectingPhrases rel p = PhraseSet (track p) (line p) (S.intersection rel $ phrases p)
+intersectingPhrases rel (PhraseSet t phrases) = PhraseSet t $ intersectingWith phrases
+    where intersectingWith = map (\(PhraseLine l p) -> PhraseLine l $ S.intersection rel p)
 
 collectIntersecting :: S.Set Word -> [PhraseSet] -> [PhraseSet]
 collectIntersecting rel p = intersectingPhrases rel <$> p `using` rseq

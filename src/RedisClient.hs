@@ -15,20 +15,9 @@ import           Data.Either (either, rights)
 import           Data.Maybe (maybeToList)
 import qualified Data.Set as S
 import           Database.Redis
+import           PhraseSet
 import           Track
 import           WWRRD
-
-instance FromJSON PhraseSet where
-  parseJSON (Object v) = PhraseSet <$>
-                         v .: "track" <*>
-                         v .: "line"  <*>
-                         v .: "phrases"
-  parseJSON _ = mzero
-
-instance ToJSON PhraseSet where
-  toJSON phrase = object [ "track"   .= toJSON (track phrase)
-                         , "line"    .= line phrase
-                         , "phrases" .= phrases phrase]
 
 writePhrasesToStore :: [PhraseSet] -> IO [Either Reply Status]
 writePhrasesToStore phrases = do
@@ -72,4 +61,4 @@ haveCached = do
   conn <- connect defaultConnectInfo
   runRedis conn $ do
     allKeys <- keys "*"
-    return $ length (getKeys . errorsToString $ allKeys) > 0
+    return $ not $ null (getKeys . errorsToString $ allKeys)
