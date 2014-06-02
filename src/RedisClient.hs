@@ -5,9 +5,6 @@ module RedisClient (
   , haveCached
   ) where
 
-import           Control.Applicative
-import           Control.Monad
-import           Control.Monad.IO.Class
 import           Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL

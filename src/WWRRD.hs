@@ -11,12 +11,8 @@ module WWRRD (
        ) where
 
 import           Control.Applicative ((<$>))
-import           Control.Monad (join)
 import           Control.Parallel.Strategies
 import           Data.Char (toLower)
-import           Data.Function
-import           Data.List (intercalate, sortBy)
-import           Data.Ord
 import qualified Data.Set as S
 import           NLP.WordNet
 import           PhraseSet
