@@ -1,9 +1,6 @@
 {-#LANGUAGE OverloadedStrings #-}
 module Track (
-    Track
-  , title
-  , media
-  , lyrics
+    Track (..)
   , parseDirectory
   ) where
 
@@ -28,7 +25,9 @@ instance FromJSON Track where
   parseJSON _ = mzero
 
 instance ToJSON Track where
-  toJSON track = object ["media" .= media track, "lyrics" .= lyrics track]
+  toJSON track = object ["media" .= media track
+                        , "lyrics" .= lyrics track
+                        , "title" .= title track]
 
 parseFile :: FilePath -> IO (Maybe Track)
 parseFile f = liftM (decode . BL.fromStrict) $ B.readFile f

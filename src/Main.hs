@@ -44,7 +44,7 @@ lookupHandler = do
       phrases <- liftIO getPhrases
       let related = collectRelations env (B.unpack text) phrases
       liftIO $ closeEnv env
-      writeBS . B.pack $ show related
+      writeBS . B.pack $ show text --TODO
 
 getPhrases :: IO [PhraseSet]
 getPhrases = liftM (either (const []) id) readPhrasesFromStore
