@@ -6,6 +6,8 @@ import           Control.DeepSeq
 import           Control.Monad (liftM)
 import           Control.Monad.IO.Class
 import           Control.Applicative
+import           Data.Maybe (maybe)
+import           Pick
 import           Snap.Core
 import           Snap.Util.FileServe
 import           Snap.Http.Server
@@ -39,7 +41,13 @@ lookupHandler = do
   queryText <- getParam "query"
   case queryText of
     Nothing -> writeBS "Please include a query on the URL"
-    (Just text) -> undefined
+    (Just text) -> getLines text
+  where
+    getLines text = do
+      relatedPhrases <- liftIO $ findRelatedPhrases (B.unpack text)
+      let relatedLines = relatedPhrases >>= phraseLines
+      line <- liftIO $ pick relatedLines
+      writeBS $ maybe "huh?" (B.pack . show) line
 
 getPhrases :: IO [PhraseSet]
 getPhrases = liftM (either (const []) id) readPhrasesFromStore
@@ -51,4 +59,3 @@ findRelatedPhrases text = do
   let related = collectRelations env text phrases
   related `deepseq` closeEnv env
   return related
-
