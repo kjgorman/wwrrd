@@ -43,11 +43,13 @@ collectPhrases :: WN ([Track] -> [PhraseSet])
 collectPhrases trax = pairLyrics <$> trax `using` parList rseq
 
 intersectingPhrases :: S.Set Word -> PhraseSet -> PhraseSet
-intersectingPhrases rel (PhraseSet t phrases) = PhraseSet t $ intersectingWith phrases
-    where intersectingWith = map (\(PhraseLine l p) -> PhraseLine l $ S.intersection rel p)
+intersectingPhrases rel (PhraseSet t phraseLines) = PhraseSet t $ notEmpty . with $ phraseLines
+    where with = map (\(PhraseLine l p) -> PhraseLine l $ S.intersection rel p)
+          notEmpty = filter (not . S.null . phrases)
 
 collectIntersecting :: S.Set Word -> [PhraseSet] -> [PhraseSet]
-collectIntersecting rel p = intersectingPhrases rel <$> p `using` rseq
+collectIntersecting rel p = filter (not . null . phraseLines) intersecting
+  where intersecting = intersectingPhrases rel <$> p `using` rseq
 
 loadPhraseSets :: IO ([PhraseSet], WordNetEnv)
 loadPhraseSets = do

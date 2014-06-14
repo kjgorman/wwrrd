@@ -2,6 +2,7 @@
 module Main where
 
 import           Data.ByteString.Char8 as B (unpack, pack)
+import           Control.DeepSeq
 import           Control.Monad (liftM)
 import           Control.Monad.IO.Class
 import           Control.Applicative
@@ -18,6 +19,7 @@ main = do
   if alreadyLoaded then quickHttpServe site
                    else loadAndServe
 
+loadAndServe :: IO ()
 loadAndServe = do
   print "loading relations to redis"
   (phrases, env) <- loadPhraseSets
@@ -37,14 +39,16 @@ lookupHandler = do
   queryText <- getParam "query"
   case queryText of
     Nothing -> writeBS "Please include a query on the URL"
-    (Just text) -> findRelatedPhrases text
-  where
-    findRelatedPhrases text = do
-      env <- liftIO wnEnv
-      phrases <- liftIO getPhrases
-      let related = collectRelations env (B.unpack text) phrases
-      liftIO $ closeEnv env
-      writeBS . B.pack $ show text --TODO
+    (Just text) -> undefined
 
 getPhrases :: IO [PhraseSet]
 getPhrases = liftM (either (const []) id) readPhrasesFromStore
+
+findRelatedPhrases :: String -> IO [PhraseSet]
+findRelatedPhrases text = do
+  env <- wnEnv
+  phrases <- getPhrases
+  let related = collectRelations env text phrases
+  related `deepseq` closeEnv env
+  return related
+
