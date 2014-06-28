@@ -1,5 +1,5 @@
 /* jshint asi:true, laxcomma:true, expr:true */
-+(function ($) {
++function ($) {
     "use strict";
     var $submit = $('#submit')
       , $output = $('#output')
@@ -13,4 +13,4 @@
 	    $output.html(line)
 	})
     })
-}) (Zepto)
+} (Zepto)

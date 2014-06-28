@@ -8,7 +8,9 @@ import           Control.Monad.IO.Class
 import           Control.Applicative
 import           Data.Aeson (encode)
 import           Data.Maybe (maybe)
+import qualified Data.Set as S
 import           Pick
+import           PhraseSet
 import           Snap.Core
 import           Snap.Util.FileServe
 import           Snap.Http.Server
@@ -35,28 +37,33 @@ loadAndServe = do
 site :: Snap ()
 site =
     ifTop (serveFile "./static/index.html") <|>
-    route [ ("query/:query", lookupHandler) ] <|>
+    route [ ("query/:query", lookupHandler), ("phrases", phraseHandler) ] <|>
     dir "static" (serveDirectory "./static/")
+
+phraseHandler :: Snap ()
+phraseHandler = do
+  allPhrases <- liftIO getPhrases
+  let lines = allPhrases >>= phraseLines
+  writeBS $ B.pack . show . S.unions $ map phrases lines
 
 lookupHandler :: Snap ()
 lookupHandler = do
   queryText <- getParam "query"
   case queryText of
     Nothing -> writeBS "Please include a query on the URL"
-    (Just text) -> getLines $ words $ B.unpack text
+    (Just text) -> getLines . words . B.unpack $ text
 
 getLines :: [String] -> Snap ()
 getLines lns = do
-  relatedPhrases <- liftIO $ concatMapM findRelatedPhrases lns
-  phrase <- liftIO $ pick relatedPhrases
-  writeBS $ maybe "huh?" (B.pack . show . encode ) phrase
+  phrase <- liftIO $ concatMapM findRelatedPhrases lns >>= pick
+  writeBS $ maybe "huh?" (B.pack . show . encode) phrase
 
 getPhrases :: IO [PhraseSet]
 getPhrases = liftM (either (const []) id) readPhrasesFromStore
 
 -- how does this not exist in control.monad?
 concatMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f xs = liftM concat $ mapM f xs
+concatMapM f = liftM concat . mapM f
 
 findRelatedPhrases :: String -> IO [PhraseSet]
 findRelatedPhrases text = do
