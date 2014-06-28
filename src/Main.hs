@@ -42,8 +42,7 @@ site =
 
 phraseHandler :: Snap ()
 phraseHandler = do
-  allPhrases <- liftIO getPhrases
-  let lines = allPhrases >>= phraseLines
+  lines <- liftIO $ liftM (concatMap phraseLines) getPhrases
   writeBS $ B.pack . show . S.unions $ map phrases lines
 
 lookupHandler :: Snap ()

@@ -27,7 +27,12 @@ closeEnv :: WordNetEnv -> IO ()
 closeEnv = closeWordNet
 
 similar :: WN (Word -> POS -> [SearchResult])
-similar term pos = search (map toLower term) pos AllSenses >>= relatedBy Similar
+similar term pos = search (map toLower term) pos AllSenses >>= flip concatMap searchForms . flip relatedBy
+
+searchForms :: [Form]
+searchForms = [Similar,Antonym,Hypernym,Hyponym,Entailment,Similar,IsMember,IsStuff,IsPart,HasMember,HasStuff
+              ,HasPart,Meronym,Holonym,CauseTo,PPL,SeeAlso,Attribute,VerbGroup,Derivation,Classification,Class,
+               Nominalization,Syns,Freq,Frames,Coords,Relatives,HMeronym,HHolonym]
 
 collectSimilar :: WN (String -> [Word])
 collectSimilar str = forPos >>= similarWords
