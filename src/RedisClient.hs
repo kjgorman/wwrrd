@@ -5,6 +5,7 @@ module RedisClient (
   , haveCached
   ) where
 
+import           Control.DeepSeq (force)
 import           Data.Aeson
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy as BL
@@ -32,7 +33,7 @@ readPhrasesFromStore = do
     values <- valuesForKeys $ getKeys eitherKeys
     return $ case eitherKeys of
       Left err -> Left err
-      Right _ -> Right $ valuesAsPhrases values
+      Right _ -> Right $ valuesAsPhrases $ force values
 
 valuesAsPhrases :: [B.ByteString] -> [PhraseSet]
 valuesAsPhrases vals = vals >>= maybeToList . Data.Aeson.decode . BL.fromStrict

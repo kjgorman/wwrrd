@@ -54,7 +54,7 @@ lookupHandler = do
 
 getLines :: [String] -> Snap ()
 getLines lns = do
-  phrase <- liftIO $ concatMapM findRelatedPhrases lns >>= pick
+  phrase <- liftIO $ findRelatedPhrases lns >>= pick
   writeBS $ maybe "huh?" (B.pack . show . encode) phrase
 
 getPhrases :: IO [PhraseSet]
@@ -64,10 +64,10 @@ getPhrases = liftM (either (const []) id) readPhrasesFromStore
 concatMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
 concatMapM f = liftM concat . mapM f
 
-findRelatedPhrases :: String -> IO [PhraseSet]
+findRelatedPhrases :: [String] -> IO [PhraseSet]
 findRelatedPhrases text = do
   env <- wnEnv
   phrases <- getPhrases
-  let related = collectRelations env text phrases
+  let related = text >>= collectRelations env phrases
   related `deepseq` closeEnv env
   return related

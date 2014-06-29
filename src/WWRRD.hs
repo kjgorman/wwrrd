@@ -27,12 +27,11 @@ closeEnv :: WordNetEnv -> IO ()
 closeEnv = closeWordNet
 
 similar :: WN (Word -> POS -> [SearchResult])
-similar term pos = search (map toLower term) pos AllSenses >>= flip concatMap searchForms . flip relatedBy
+similar term pos = search (toLower <$> term) pos AllSenses >>= flip concatMap searchForms . flip relatedBy
 
 searchForms :: [Form]
-searchForms = [Similar,Antonym,Hypernym,Hyponym,Entailment,Similar,IsMember,IsStuff,IsPart,HasMember,HasStuff
-              ,HasPart,Meronym,Holonym,CauseTo,PPL,SeeAlso,Attribute,VerbGroup,Derivation,Classification,Class,
-               Nominalization,Syns,Freq,Frames,Coords,Relatives,HMeronym,HHolonym]
+searchForms = [Similar,Hypernym,Hyponym,Entailment,IsMember,IsStuff,IsPart,HasMember,HasStuff
+              ,HasPart,Meronym,Holonym,CauseTo,PPL,SeeAlso,Attribute,VerbGroup,Derivation,Relatives]
 
 collectSimilar :: WN (String -> [Word])
 collectSimilar str = forPos >>= similarWords
@@ -41,7 +40,7 @@ collectSimilar str = forPos >>= similarWords
       similarWords s = uncurry similar s >>= (`srWords` AllSenses)
 
 pairLyrics :: WN (Track -> PhraseSet)
-pairLyrics t = PhraseSet t $ map buildPhraseSet $ lyrics t
+pairLyrics t = PhraseSet t $ buildPhraseSet <$> lyrics t
     where buildPhraseSet x = PhraseLine x (S.fromList $ collectSimilar x)
 
 collectPhrases :: WN ([Track] -> [PhraseSet])
@@ -63,6 +62,6 @@ loadPhraseSets = do
   let phrases = runs env $ collectPhrases trax
   return (phrases, env)
 
-collectRelations :: WordNetEnv -> String -> [PhraseSet] -> [PhraseSet]
-collectRelations env text = collectIntersecting related
+collectRelations :: WordNetEnv -> [PhraseSet] -> String -> [PhraseSet]
+collectRelations env phrases text = collectIntersecting related phrases
   where related = S.fromList $ words text ++ runs env collectSimilar text

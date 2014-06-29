@@ -36,4 +36,4 @@ parseDirectory :: FilePath -> IO [Track]
 parseDirectory dir = do
   f <- getDirectoryContents dir
   files <- mapM (\f -> parseFile $ dir ++ "/" ++ f) (drop 2 f)
-  return $ map fromJust $ filter isJust files
+  return $ fromJust <$> filter isJust files
