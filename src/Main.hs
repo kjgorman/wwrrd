@@ -7,9 +7,7 @@ import           Control.Monad (liftM)
 import           Control.Monad.IO.Class
 import           Control.Applicative
 import           Data.Aeson (encode)
-import           Data.Maybe (maybe)
 import qualified Data.Set as S
-import           Pick
 import           PhraseSet
 import           Snap.Core
 import           Snap.Util.FileServe
@@ -54,8 +52,8 @@ lookupHandler = do
 
 getLines :: [String] -> Snap ()
 getLines lns = do
-  phrase <- liftIO $ findRelatedPhrases lns >>= pick
-  writeBS $ maybe "huh?" (B.pack . show . encode) phrase
+  phrase <- liftIO $ findRelatedPhrases lns >>= most
+  writeBS $ (B.pack . show . encode) phrase
 
 getPhrases :: IO [PhraseSet]
 getPhrases = liftM (either (const []) id) readPhrasesFromStore

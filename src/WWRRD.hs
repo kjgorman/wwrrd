@@ -5,6 +5,7 @@ module WWRRD (
        -- * functions for interacting with phrase sets
        , loadPhraseSets
        , collectRelations
+       , most
        -- * functions for interacting with a WordNet environment
        , closeEnv
        , wnEnv
@@ -13,6 +14,9 @@ module WWRRD (
 import           Control.Applicative ((<$>))
 import           Control.Parallel.Strategies
 import           Data.Char (toLower)
+import           Data.Function (on)
+import           Data.List (maximumBy)
+import           Data.Ord (compare)
 import qualified Data.Set as S
 import           NLP.WordNet
 import           PhraseSet
@@ -31,7 +35,7 @@ similar term pos = search (toLower <$> term) pos AllSenses >>= flip concatMap se
 
 searchForms :: [Form]
 searchForms = [Similar,Hypernym,Hyponym,Entailment,IsMember,IsStuff,IsPart,HasMember,HasStuff
-              ,HasPart,Meronym,Holonym,CauseTo,PPL,SeeAlso,Attribute,VerbGroup,Derivation,Relatives]
+              ,HasPart,Meronym,Holonym,CauseTo,Derivation,Relatives]
 
 collectSimilar :: WN (String -> [Word])
 collectSimilar str = forPos >>= similarWords
@@ -65,3 +69,6 @@ loadPhraseSets = do
 collectRelations :: WordNetEnv -> [PhraseSet] -> String -> [PhraseSet]
 collectRelations env phrases text = collectIntersecting related phrases
   where related = S.fromList $ words text ++ runs env collectSimilar text
+
+most :: [PhraseSet] -> IO PhraseLine
+most = return . maximumBy (compare `on` (S.size . phrases)) . concatMap phraseLines
