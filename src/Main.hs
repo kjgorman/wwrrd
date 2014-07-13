@@ -36,7 +36,8 @@ site :: Snap ()
 site =
     ifTop (serveFile "./static/index.html") <|>
     route [ ("query/:query", lookupHandler), ("phrases", phraseHandler) ] <|>
-    dir "static" (serveDirectory "./static/")
+    dir "static" (serveDirectory "./static/") <|>
+    dir "out" (serveDirectory "./out/")
 
 phraseHandler :: Snap ()
 phraseHandler = do
