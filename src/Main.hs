@@ -13,7 +13,7 @@ import           Snap.Core
 import           Snap.Util.FileServe
 import           Snap.Http.Server
 import           WWRRD
-import           RedisClient (haveCached, writePhrasesToStore, readPhrasesFromStore)
+import           RedisClient
 
 main :: IO ()
 main = do

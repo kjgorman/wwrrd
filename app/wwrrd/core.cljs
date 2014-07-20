@@ -23,7 +23,7 @@
          enters (enter-listen input)]
     (go (while true
           (let [query (<! enters)]
-            (.log js/console query))))))
+            (http/get "http://127.0.0.1:8080" { :with-credentials? false }))))))
 
 (defn rick-view [app owner]
   (reify
