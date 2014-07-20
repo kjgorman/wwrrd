@@ -3,7 +3,8 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.events :as events]
-            [cljs.core.async :refer [put! <! chan]]))
+            [cljs.core.async :refer [put! <! chan]]
+            [cljs-http.client :as http]))
 
 (enable-console-print!)
 
@@ -21,7 +22,8 @@
   (let* [input (om/get-node owner "query-input")
          enters (enter-listen input)]
     (go (while true
-          (.log js/console (<! enters))))))
+          (let [query (<! enters)]
+            (.log js/console query))))))
 
 (defn rick-view [app owner]
   (reify
