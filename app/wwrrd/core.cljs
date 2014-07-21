@@ -22,8 +22,8 @@
   (let* [input (om/get-node owner "query-input")
          enters (enter-listen input)]
     (go (while true
-          (let [query (<! enters)]
-            (http/get "http://localhost:8080" { :with-credentials? false }))))))
+          (let* [query (<! enters)]
+            (http/get (+ "query/" query) { :with-credentials? false }))))))
 
 (defn rick-view [app owner]
   (reify
