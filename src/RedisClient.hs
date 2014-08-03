@@ -24,16 +24,19 @@ writePhrasesToStore phrases = do
     where
       writePhrase p = set (B.pack . title $ track p) $ BL.toStrict $ encode p
 
-readPhrasesFromStore :: IO (Either String [PhraseSet])
+readPhrasesFromStore :: IO [PhraseSet]
 readPhrasesFromStore = do
   conn <- connect defaultConnectInfo
   runRedis conn $ do
     fetchKeys <- keys "*"
     let eitherKeys = errorsToString fetchKeys
     values <- valuesForKeys $ getKeys eitherKeys
-    return $ case eitherKeys of
+    return $ suppressErrors $ case eitherKeys of
       Left err -> Left err
       Right _ -> Right $ valuesAsPhrases $ force values
+
+suppressErrors :: Either String [PhraseSet] -> [PhraseSet]
+suppressErrors = either (const []) id
 
 valuesAsPhrases :: [B.ByteString] -> [PhraseSet]
 valuesAsPhrases vals = vals >>= maybeToList . Data.Aeson.decode . BL.fromStrict

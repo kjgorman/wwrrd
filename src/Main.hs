@@ -2,7 +2,6 @@
 module Main where
 
 import           Data.ByteString.Char8 as B (unpack, pack)
-import           Control.DeepSeq
 import           Control.Monad (liftM)
 import           Control.Monad.IO.Class
 import           Control.Applicative
@@ -41,7 +40,8 @@ site =
 
 phraseHandler :: Snap ()
 phraseHandler = do
-  lines <- liftIO $ liftM (concatMap phraseLines) getPhrases
+  phraseSet <- liftIO $ readPhrasesFromStore
+  let lines = concatMap phraseLines phraseSet
   writeBS $ B.pack . show . S.unions $ map phrases lines
 
 lookupHandler :: Snap ()
@@ -53,20 +53,6 @@ lookupHandler = do
 
 getLines :: [String] -> Snap ()
 getLines lns = do
-  phrase <- liftIO $ findRelatedPhrases lns >>= most
+  phraseResponse <- liftIO $ readPhrasesFromStore
+  phrase <- liftIO $ findRelatedPhrases lns phraseResponse >>= most
   writeBS $ (B.pack . show . encode) phrase
-
-getPhrases :: IO [PhraseSet]
-getPhrases = liftM (either (const []) id) readPhrasesFromStore
-
--- how does this not exist in control.monad?
-concatMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f = liftM concat . mapM f
-
-findRelatedPhrases :: [String] -> IO [PhraseSet]
-findRelatedPhrases text = do
-  env <- wnEnv
-  phrases <- getPhrases
-  let related = text >>= collectRelations env phrases
-  related `deepseq` closeEnv env
-  return related

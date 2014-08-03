@@ -5,6 +5,7 @@ module WWRRD (
        -- * functions for interacting with phrase sets
        , loadPhraseSets
        , collectRelations
+       , findRelatedPhrases
        , most
        -- * functions for interacting with a WordNet environment
        , closeEnv
@@ -12,6 +13,9 @@ module WWRRD (
        ) where
 
 import           Control.Applicative ((<$>))
+import           Control.DeepSeq
+import           Control.Monad (liftM)
+import           Control.Monad.Utilities
 import           Control.Parallel.Strategies
 import           Data.Char (toLower)
 import           Data.Function (on)
@@ -72,3 +76,10 @@ collectRelations env phrases text = collectIntersecting related phrases
 
 most :: [PhraseSet] -> IO PhraseLine
 most = return . maximumBy (compare `on` (S.size . phrases)) . concatMap phraseLines
+
+findRelatedPhrases :: [String] -> [PhraseSet] -> IO [PhraseSet]
+findRelatedPhrases text phraseSet = do
+  env <- wnEnv
+  let related = text >>= collectRelations env phraseSet
+  related `deepseq` closeEnv env
+  return phraseSet
