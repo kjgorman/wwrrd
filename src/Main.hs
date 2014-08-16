@@ -49,10 +49,14 @@ lookupHandler = do
   queryText <- getParam "query"
   case queryText of
     Nothing -> writeBS "Please include a query on the URL"
-    (Just text) -> getLines . words . B.unpack $ text
+    (Just text) -> getPhraseLine . words . B.unpack $ text
 
-getLines :: [String] -> Snap ()
-getLines lns = do
-  phraseResponse <- liftIO $ readPhrasesFromStore
-  phrase <- liftIO $ findRelatedPhrases lns phraseResponse >>= most
+getPhraseLine :: [String] -> Snap ()
+getPhraseLine lns = do
+  phrase <- liftIO $ findPhrasesFor lns >>= most
   writeBS $ (B.pack . show . encode) phrase
+
+findPhrasesFor :: [String] -> IO [PhraseSet]
+findPhrasesFor lns = do
+  phraseResponse <- liftIO $ readPhrasesFromStore
+  findRelatedPhrases lns phraseResponse
