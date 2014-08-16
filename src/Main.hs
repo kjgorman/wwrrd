@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import           Data.ByteString.Char8 as B (unpack, pack)
+import qualified Data.ByteString.Char8 as B (unpack, pack)
+import qualified Data.ByteString.Lazy as BL (toStrict)
 import           Control.Monad (liftM)
 import           Control.Monad.IO.Class
 import           Control.Applicative
@@ -54,7 +55,7 @@ lookupHandler = do
 getPhraseLine :: [String] -> Snap ()
 getPhraseLine lns = do
   phrase <- liftIO $ findPhrasesFor lns >>= most
-  writeBS $ (B.pack . show . encode) phrase
+  writeBS $ (BL.toStrict . encode) phrase
 
 findPhrasesFor :: [String] -> IO [PhraseSet]
 findPhrasesFor lns = do
