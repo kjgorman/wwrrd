@@ -22,8 +22,9 @@
   (let* [input (om/get-node owner "query-input")
          enters (enter-listen input)]
     (go (while true
-          (let* [query (<! enters)]
-            (http/get (+ "query/" query) { :with-credentials? false }))))))
+          (let* [query (<! enters)
+                 response (<! (http/get (+ "query/" query) { :with-credentials? false }))]
+            (.writeln js/document (.-line (.parse js/JSON (:body response)))))))))
 
 (defn rick-view [app owner]
   (reify
