@@ -41,7 +41,7 @@ site =
 
 phraseHandler :: Snap ()
 phraseHandler = do
-  phraseSet <- liftIO $ readPhrasesFromStore
+  phraseSet <- liftIO readPhrasesFromStore
   let lines = concatMap phraseLines phraseSet
   writeBS $ B.pack . show . S.unions $ map phrases lines
 
@@ -54,10 +54,10 @@ lookupHandler = do
 
 getPhraseLine :: [String] -> Snap ()
 getPhraseLine lns = do
-  phrase <- liftIO $ findPhrasesFor lns >>= most
+  phrase <- liftIO $ findPhrasesFor lns >>= weighted
   writeBS $ (BL.toStrict . encode) phrase
 
 findPhrasesFor :: [String] -> IO [PhraseSet]
 findPhrasesFor lns = do
-  phraseResponse <- liftIO $ readPhrasesFromStore
+  phraseResponse <- liftIO readPhrasesFromStore
   findRelatedPhrases lns phraseResponse

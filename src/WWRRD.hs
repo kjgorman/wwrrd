@@ -6,7 +6,7 @@ module WWRRD (
        , loadPhraseSets
        , collectRelations
        , findRelatedPhrases
-       , most
+       , weighted
        -- * functions for interacting with a WordNet environment
        , closeEnv
        , wnEnv
@@ -25,6 +25,7 @@ import qualified Data.Set as S
 import           NLP.WordNet
 import           PhraseSet
 import           Track
+import           WeightedSelection (select)
 
 wnEnv :: IO WordNetEnv
 wnEnv = initializeWordNetWithOptions (Just dictPath) (return warn)
@@ -76,6 +77,9 @@ collectRelations env phrases text = collectIntersecting related phrases
 
 most :: [PhraseSet] -> IO PhraseLine
 most = return . maximumBy (compare `on` (S.size . phrases)) . concatMap phraseLines
+
+weighted :: [PhraseSet] -> IO PhraseLine
+weighted = select (toRational . S.size . phrases) . concatMap phraseLines
 
 findRelatedPhrases :: [String] -> [PhraseSet] -> IO [PhraseSet]
 findRelatedPhrases text phraseSet = do
