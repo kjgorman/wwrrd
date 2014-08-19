@@ -13,9 +13,9 @@
 (defn enter-listen [el]
   (let [out (chan)]
     (events/listen el "keydown"
-      (fn [e]
-        (when (== (.-keyCode e) ENTER)
-          (put! out (.-value el)))))
+                   (fn [e]
+                     (when (== (.-keyCode e) ENTER)
+                       (put! out (.-value el)))))
     out))
 
 (defn run-state [app owner]
@@ -31,16 +31,16 @@
     om/IDidMount
     (did-mount [_]
       (run-state app owner))
-   om/IRenderState
-   (render-state [_ _]
-       (dom/h1 nil "wwrrd")
-       (dom/div nil
-         (dom/div nil "what would rick ross do?")
-         (dom/input
-           #js { :type "text" :ref "query-input" })
-         (dom/div nil (:current app))))))
+    om/IRenderState
+    (render-state [_ _]
+      (dom/h1 nil "wwrrd")
+      (dom/div nil
+               (dom/div nil "what would rick ross do?")
+               (dom/input
+                #js { :type "text" :ref "query-input" })
+               (dom/div nil (:current app))))))
 
 (def app-state (atom { :current "foo" }))
 
 (om/root rick-view app-state
-  {:target (. js/document (getElementById "rick"))})
+         {:target (. js/document (getElementById "rick"))})
