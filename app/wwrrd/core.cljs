@@ -18,16 +18,19 @@
           (put! out (.-value el)))))
     out))
 
+(defn run-state [app owner]
+  (let* [input (om/get-node owner "query-input")
+         enters (enter-listen input)]
+        (go (while true
+              (let* [query (<! enters)
+                     response (<! (http/get (+ "query/" query) { :with-credentials? false }))]
+                    (om/transact! app :current (fn [_] (.-line (.parse js/JSON (:body response))))))))))
+
 (defn rick-view [app owner]
   (reify
     om/IDidMount
     (did-mount [_]
-      (let* [input (om/get-node owner "query-input")
-             enters (enter-listen input)]
-            (go (while true
-                  (let* [query (<! enters)
-                         response (<! (http/get (+ "query/" query) { :with-credentials? false }))]
-                        (om/transact! app :current (fn [_] (.-line (.parse js/JSON (:body response))))))))))
+      (run-state app owner))
    om/IRenderState
    (render-state [_ _]
        (dom/h1 nil "wwrrd")
