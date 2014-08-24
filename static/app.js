@@ -15,4 +15,4 @@ goog.addDependency("../cljs_http/core.js", ['cljs_http.core'], ['cljs.core', 'go
 goog.addDependency("../cljs_http/client.js", ['cljs_http.client'], ['cljs.core', 'no.en.core', 'cljs_http.core', 'cljs_http.util', 'clojure.string', 'cljs.reader', 'cljs.core.async', 'goog.Uri']);
 goog.addDependency("../om/dom.js", ['om.dom'], ['cljs.core']);
 goog.addDependency("../om/core.js", ['om.core'], ['cljs.core', 'om.dom']);
-goog.addDependency("../wwrrd/core.js", ['wwrrd.core'], ['cljs.core', 'cljs_http.client', 'om.core', 'om.dom', 'cljs.core.async', 'goog.events']);
+goog.addDependency("../wwrrd/core.js", ['wwrrd.core'], ['cljs.core', 'cljs_http.client', 'goog.dom', 'om.core', 'om.dom', 'cljs.core.async', 'goog.events']);

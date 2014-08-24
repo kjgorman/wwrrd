@@ -3,6 +3,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [goog.events :as events]
+            [goog.dom :as goog.dom]
             [cljs.core.async :refer [put! <! chan]]
             [cljs-http.client :as http]))
 
@@ -37,10 +38,15 @@
       (dom/div nil
                (dom/div nil "what would rick ross do?")
                (dom/input
-                #js { :type "text" :ref "query-input" })
+                #js { :type "text" :ref "query-input" :id "inp"})
                (dom/div nil (:current app))))))
 
-(def app-state (atom { :current "foo" }))
+(def app-state (atom { :current "" }))
 
 (om/root rick-view app-state
          {:target (. js/document (getElementById "rick"))})
+
+(set! (.-onload js/window)
+      (fn [_]
+        (let [inp (goog.dom/getElement "inp")]
+          (.focus inp))))

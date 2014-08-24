@@ -1,0 +1,10 @@
+#rick {
+    position: absolute;
+    top: 40%;
+    left:40%;
+}
+
+#rick input[type=text] {
+    border: none;
+    outline: 0;
+}
