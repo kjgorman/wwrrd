@@ -39,8 +39,7 @@ similar :: WN (Word -> POS -> [SearchResult])
 similar term pos = search (toLower <$> term) pos AllSenses >>= flip concatMap searchForms . flip relatedBy
 
 searchForms :: [Form]
-searchForms = [Similar,Hypernym,Hyponym,Entailment,IsMember,IsStuff,IsPart,HasMember,HasStuff
-              ,HasPart,Meronym,Holonym,CauseTo,Derivation,Relatives]
+searchForms = [Similar,Entailment,IsMember,IsStuff,IsPart,HasMember,CauseTo,Derivation,Relatives]
 
 collectSimilar :: WN (String -> [Word])
 collectSimilar str = forPos >>= similarWords
