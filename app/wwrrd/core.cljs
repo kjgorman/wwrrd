@@ -25,8 +25,8 @@
     (catch js/Error e (str "something fucked up"))))
 
 (defn parse-response [app response]
-    (om/transact! app :current-line (fn [_] (parse-line '.-line response)))
-    (om/transact! app :current-phrases (fn [_] (parse-line (fn [b] (.-phrases b)) response))))
+    (om/transact! app :current-line (fn [_] (parse-line #(.-line %) response)))
+    (om/transact! app :current-phrases (fn [_] (parse-line #(.-phrases %) response))))
 
 (defn listen [app enters]
   (go (while true
