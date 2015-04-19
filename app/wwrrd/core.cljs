@@ -25,8 +25,7 @@
     (catch js/Error e (str "something fucked up"))))
 
 (defn parse-response [app response]
-    (om/transact! app :current-line (fn [_] (parse-line #(.-line %) response)))
-    (om/transact! app :current-phrases (fn [_] (parse-line #(.-phrases %) response))))
+    (om/transact! app :current-line (fn [_] (parse-line #(.-line %) response))))
 
 (defn listen [app enters]
   (go (while true
@@ -52,8 +51,7 @@
                (dom/div nil "what would rick ross do?")
                (dom/input
                 #js { :type "text" :ref "query-input" :id "inp"})
-               (dom/div nil (:current-line app))
-               (dom/div #js { :className "phrases" } (:current-phrases app))))))
+               (dom/div nil (:current-line app))))))
 
 (def app-state (atom { :current-line "" :current-phrases nil }))
 

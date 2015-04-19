@@ -4,85 +4,31 @@ module WWRRD (
          PhraseSet (..)
        -- * functions for interacting with phrase sets
        , loadPhraseSets
-       , collectRelations
        , findRelatedPhrases
-       , weighted
-       -- * functions for interacting with a WordNet environment
-       , closeEnv
-       , wnEnv
+       , getRelated
        ) where
 
 import           Control.Applicative ((<$>))
-import           Control.DeepSeq
 import           Control.Monad (liftM)
-import           Control.Monad.Utilities
 import           Control.Parallel.Strategies
-import           Data.Char (toLower)
-import           Data.Function (on)
-import           Data.List (maximumBy)
-import           Data.Ord (compare)
+import           Data.Char     (toLower)
 import qualified Data.Set as S
 import           NLP.WordNet
 import           PhraseSet
 import           Track
-import           WeightedSelection (select)
+import           Relatedness (findRelatedPhrases, run, relatedPhrase)
 
-wnEnv :: IO WordNetEnv
-wnEnv = initializeWordNetWithOptions (Just dictPath) (return warn)
-        where dictPath = "dict/"
-              warn s e = return () :: IO ()
-
-closeEnv :: WordNetEnv -> IO ()
-closeEnv = closeWordNet
-
-similar :: WN (Word -> POS -> [SearchResult])
-similar term pos = search (toLower <$> term) pos AllSenses >>= flip concatMap searchForms . flip relatedBy
-
-searchForms :: [Form]
-searchForms = [Similar,Entailment,IsMember,IsStuff,IsPart,HasMember,CauseTo,Derivation,Relatives]
-
-collectSimilar :: WN (String -> [Word])
-collectSimilar str = forPos >>= similarWords
-    where
-      forPos = [(w, p) | p <- [Adj, Noun, Verb, Adv], w <- words str]
-      similarWords s = uncurry similar s >>= (`srWords` AllSenses)
+getRelated :: String -> IO (S.Set String)
+getRelated = run relatedPhrase
 
 pairLyrics :: WN (Track -> PhraseSet)
 pairLyrics t = PhraseSet t $ buildPhraseSet <$> lyrics t
-    where buildPhraseSet x = PhraseLine x (S.fromList $ collectSimilar x)
+    where buildPhraseSet x = PhraseLine x (relatedPhrase x)
 
 collectPhrases :: WN ([Track] -> [PhraseSet])
 collectPhrases trax = pairLyrics <$> trax `using` parList rseq
 
-intersectingPhrases :: S.Set Word -> PhraseSet -> PhraseSet
-intersectingPhrases rel (PhraseSet t phraseLines) = PhraseSet t $ notEmpty . with $ phraseLines
-    where with = map (\(PhraseLine l p) -> PhraseLine l $ S.intersection rel p)
-          notEmpty = filter (not . S.null . phrases)
-
-collectIntersecting :: S.Set Word -> [PhraseSet] -> [PhraseSet]
-collectIntersecting rel p = filter (not . null . phraseLines) intersecting
-  where intersecting = intersectingPhrases rel <$> p `using` rseq
-
-loadPhraseSets :: IO ([PhraseSet], WordNetEnv)
+loadPhraseSets :: IO [PhraseSet]
 loadPhraseSets = do
-  env <- wnEnv
   trax <- parseDirectory "ross"
-  let phrases = runs env $ collectPhrases trax
-  return (phrases, env)
-
-collectRelations :: WordNetEnv -> [PhraseSet] -> String -> [PhraseSet]
-collectRelations env phrases text = collectIntersecting related phrases
-  where related = S.fromList $ words text ++ runs env collectSimilar text
-
-most :: [PhraseSet] -> IO PhraseLine
-most = return . maximumBy (compare `on` (S.size . phrases)) . concatMap phraseLines
-
-weighted :: [PhraseSet] -> IO PhraseLine
-weighted = select (toRational . S.size . phrases) . concatMap phraseLines
-
-findRelatedPhrases :: [String] -> [PhraseSet] -> IO [PhraseSet]
-findRelatedPhrases text phraseSet = do
-  env <- wnEnv
-  let related = text >>= collectRelations env phraseSet
-  related `deepseq` closeEnv env
-  return phraseSet
+  run collectPhrases trax
